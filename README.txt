@@ -1,13 +1,135 @@
-# 📈 Stock Alert Bot
+# 📈 Stock Alert Bot — A Telegram bot that tracks US stock prices and notifies you on target hits.
+[For 🇷🇺 Russian language click here](#русский)
 
-Телеграм-бот для отслеживания цен акций на американском рынке.
-A Telegram bot that tracks US stock prices and notifies you on target hits.
+## English
 
-[🇷🇺 Русский](#русский) · [🇬🇧 English](#english)
+A Telegram bot that tracks US stock prices (NYSE/Nasdaq) via the
+[Finnhub API](https://finnhub.io/) and notifies you when a price hits a
+target you've set.
+
+### Features
+
+- Add tickers with any number of price thresholds each
+- Notifies both when price rises **above** and falls **below** a target
+- Optional comment attached to each notification (up to 200 characters)
+- Edit existing thresholds: price, direction, comment
+- Pause / resume tracking for a ticker
+- Fully delete a ticker along with all of its thresholds
+- List of tracked tickers with current and target prices
+- Upcoming exchange holidays (excluding regular weekends)
+- Daily Finnhub API call statistics
+- Scheduled price checks (twice a day, UTC times configurable), skipping
+  weekends and exchange holidays
+- One-shot notifications — a threshold is removed automatically once it fires
+
+### Tech stack
+
+- **Python** 3.12 / 3.13
+- **[aiogram](https://docs.aiogram.dev/) 3.x** — Telegram Bot API
+- **SQLite** — stores tickers, thresholds, and API usage stats
+- **[Finnhub API](https://finnhub.io/)** — stock quotes
+
+### Project structure
+
+```
+stock-alert-bot/
+├── .env                     # secrets (not committed)
+├── .env.example
+├── .gitignore
+├── requirements.txt
+├── main.py                  # entry point
+├── config.py                # all constants: schedule, holidays, paths
+│
+├── bot/
+│   ├── keyboards.py          # inline keyboard layouts
+│   ├── notifier.py           # sending Telegram messages
+│   └── handlers/
+│       ├── start.py           # /start and main menu
+│       ├── add_ticker.py      # adding a ticker and thresholds
+│       ├── edit_ticker.py     # editing thresholds
+│       ├── manage_tickers.py  # pause/resume, delete ticker
+│       ├── calendar_info.py   # upcoming exchange holidays
+│       └── stats.py           # API usage stats
+│
+├── db/
+│   ├── database.py            # SQLite connection, table creation
+│   └── repository.py          # all read/write DB operations
+│
+├── services/
+│   ├── finnhub_client.py      # Finnhub API wrapper
+│   ├── market_calendar.py     # trading/non-trading day checks
+│   ├── price_checker.py       # comparing price against thresholds
+│   └── scheduler.py           # background scheduled-check loop
+│
+└── data/
+    └── bot.db                 # SQLite file (created automatically)
+```
+
+### Setup
+
+1. **Clone the repository and move into the project folder:**
+   ```bash
+   git clone <repo-url>
+   cd stock-alert-bot
+   ```
+
+2. **Create a virtual environment and install dependencies:**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate   # Windows: .venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+3. **Get the required keys:**
+   - Bot token — via [@BotFather](https://t.me/BotFather) on Telegram (`/newbot`)
+   - Finnhub API key — free sign-up at [finnhub.io](https://finnhub.io/)
+
+4. **Set up environment variables** — copy `.env.example` to `.env` and fill
+   in real values:
+   ```
+   BOT_TOKEN=...
+   FINNHUB_API_KEY=...
+   ```
+
+5. **Run the bot:**
+   ```bash
+   python main.py
+   ```
+
+### Configuration
+
+All configurable constants live in `config.py`:
+
+| Constant | Purpose |
+|---|---|
+| `PRICE_CHECK_TIMES_UTC` | Price check times (2 UTC values) |
+| `EXCHANGE_HOLIDAYS_2026` | NYSE/Nasdaq exchange holidays |
+| `DB_PATH` | Path to the SQLite file |
+| `DAILY_API_CALL_SOFT_LIMIT` | Self-imposed daily Finnhub call reference limit |
+
+### Current limitations
+
+- Single-user only (the DB schema already has multi-user support built in)
+- Exchange holidays are hardcoded, currently only for 2026
+- Price checks run on one fixed schedule shared by all tickers (twice a day)
+
+### Roadmap
+
+- Multi-user support
+- Per-ticker configurable check frequency (3/4/6 times a day, or hourly during
+  trading hours)
+- Price history charts
+- Fetching the exchange holiday calendar automatically via an API
+- Tracking tickers from other countries' markets
+
 
 ---
 
+
 ## Русский
+ 📈 Stock Alert Bot — Телеграм-бот для отслеживания цен акций на американском рынке.
+[🇬🇧 English](#english)
+
 
 Телеграм-бот, который следит за ценами акций на американском рынке (NYSE/Nasdaq)
 через [Finnhub API](https://finnhub.io/) и присылает уведомление, когда цена
@@ -132,123 +254,3 @@ stock-alert-bot/
 ---
 
 
-## English
-
-A Telegram bot that tracks US stock prices (NYSE/Nasdaq) via the
-[Finnhub API](https://finnhub.io/) and notifies you when a price hits a
-target you've set.
-
-### Features
-
-- Add tickers with any number of price thresholds each
-- Notifies both when price rises **above** and falls **below** a target
-- Optional comment attached to each notification (up to 200 characters)
-- Edit existing thresholds: price, direction, comment
-- Pause / resume tracking for a ticker
-- Fully delete a ticker along with all of its thresholds
-- List of tracked tickers with current and target prices
-- Upcoming exchange holidays (excluding regular weekends)
-- Daily Finnhub API call statistics
-- Scheduled price checks (twice a day, UTC times configurable), skipping
-  weekends and exchange holidays
-- One-shot notifications — a threshold is removed automatically once it fires
-
-### Tech stack
-
-- **Python** 3.12 / 3.13
-- **[aiogram](https://docs.aiogram.dev/) 3.x** — Telegram Bot API
-- **SQLite** — stores tickers, thresholds, and API usage stats
-- **[Finnhub API](https://finnhub.io/)** — stock quotes
-
-### Project structure
-
-```
-stock-alert-bot/
-├── .env                     # secrets (not committed)
-├── .env.example
-├── .gitignore
-├── requirements.txt
-├── main.py                  # entry point
-├── config.py                # all constants: schedule, holidays, paths
-│
-├── bot/
-│   ├── keyboards.py          # inline keyboard layouts
-│   ├── notifier.py           # sending Telegram messages
-│   └── handlers/
-│       ├── start.py           # /start and main menu
-│       ├── add_ticker.py      # adding a ticker and thresholds
-│       ├── edit_ticker.py     # editing thresholds
-│       ├── manage_tickers.py  # pause/resume, delete ticker
-│       ├── calendar_info.py   # upcoming exchange holidays
-│       └── stats.py           # API usage stats
-│
-├── db/
-│   ├── database.py            # SQLite connection, table creation
-│   └── repository.py          # all read/write DB operations
-│
-├── services/
-│   ├── finnhub_client.py      # Finnhub API wrapper
-│   ├── market_calendar.py     # trading/non-trading day checks
-│   ├── price_checker.py       # comparing price against thresholds
-│   └── scheduler.py           # background scheduled-check loop
-│
-└── data/
-    └── bot.db                 # SQLite file (created automatically)
-```
-
-### Setup
-
-1. **Clone the repository and move into the project folder:**
-   ```bash
-   git clone <repo-url>
-   cd stock-alert-bot
-   ```
-
-2. **Create a virtual environment and install dependencies:**
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate   # Windows: .venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
-
-3. **Get the required keys:**
-   - Bot token — via [@BotFather](https://t.me/BotFather) on Telegram (`/newbot`)
-   - Finnhub API key — free sign-up at [finnhub.io](https://finnhub.io/)
-
-4. **Set up environment variables** — copy `.env.example` to `.env` and fill
-   in real values:
-   ```
-   BOT_TOKEN=...
-   FINNHUB_API_KEY=...
-   ```
-
-5. **Run the bot:**
-   ```bash
-   python main.py
-   ```
-
-### Configuration
-
-All configurable constants live in `config.py`:
-
-| Constant | Purpose |
-|---|---|
-| `PRICE_CHECK_TIMES_UTC` | Price check times (2 UTC values) |
-| `EXCHANGE_HOLIDAYS_2026` | NYSE/Nasdaq exchange holidays |
-| `DB_PATH` | Path to the SQLite file |
-| `DAILY_API_CALL_SOFT_LIMIT` | Self-imposed daily Finnhub call reference limit |
-
-### Current limitations
-
-- Single-user only (the DB schema already has multi-user support built in)
-- Exchange holidays are hardcoded, currently only for 2026
-- Price checks run on one fixed schedule shared by all tickers (twice a day)
-
-### Roadmap
-
-- Multi-user support
-- Per-ticker configurable check frequency (3/4/6 times a day, or hourly during
-  trading hours)
-- Price history charts
-- Fetching the exchange holiday calendar automatically via an API
-- Tracking tickers from other countries' markets
